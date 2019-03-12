@@ -1,6 +1,9 @@
 package com.microkubes.tools.gateway;
 
-public class ServiceRegistryException extends Exception {
+/**
+ * Represents an error that ocurred during the service registration process.
+ */
+public class ServiceRegistryException extends RuntimeException {
     public ServiceRegistryException() {
     }
 

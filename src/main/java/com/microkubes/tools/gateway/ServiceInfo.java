@@ -3,12 +3,32 @@ package com.microkubes.tools.gateway;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ServiceInfo holds the registration data for a Microservice on the platform.
+ * Usually contains the service name, service host name and port and a list of URL paths for routing.
+ */
 public class ServiceInfo {
     private String name;
     private String host;
     private int port;
     private String[] paths;
 
+    /**
+     * Constructs new empty {@link ServiceInfo}.
+     */
+    public ServiceInfo() {
+    }
+
+    /**
+     * Constructs {@link ServiceInfo} from the given serice registration data.
+     *
+     * @param name  the microservice name. The service will be registered under this name on the API Gateway.
+     * @param host  the service container host name. This is used in the name to IP resolution when routing messages to
+     *              the microservice.
+     * @param port  the port on which the service listens to. This is the port on the container on which the service can
+     *              can be accessed on.
+     * @param paths list of URI paths used as patters for routing messages to the service.
+     */
     public ServiceInfo(String name, String host, int port, String[] paths) {
         this.name = name;
         this.host = host;
@@ -48,28 +68,77 @@ public class ServiceInfo {
         this.paths = paths;
     }
 
+    /**
+     * Performs validation on the {@link ServiceInfo} data.
+     *
+     * @throws ValidationException if the data is not valid or data is missing or not set.
+     */
+    public void validate() throws ValidationException {
+        if (host == null || "".equals(host)) {
+            throw new ValidationException("host cannot be null");
+        }
+        if (port <= 0 || port > 65535) {
+            throw new ValidationException("invalid port");
+        }
+        if (name == null || "".equals(name)) {
+            throw new ValidationException("name cannot be empty or null");
+        }
+        if (paths == null || paths.length == 0) {
+            throw new ValidationException("no paths provided for the service");
+        }
+    }
+
+    /**
+     * Builds new {@link ServiceInfo}.
+     */
     public static class ServiceInfoBuilder {
         private String name;
         private String host;
         private int port;
         private List<String> paths;
 
+        private ServiceInfoBuilder() {
+        }
 
+        /**
+         * Set the name of the service.
+         *
+         * @param name the service name.
+         * @return reference to this builder.
+         */
         public ServiceInfoBuilder setName(String name) {
             this.name = name;
             return this;
         }
 
+        /**
+         * Sets the hostname of the service.
+         *
+         * @param host the hostname.
+         * @return reference to this builder.
+         */
         public ServiceInfoBuilder host(String host) {
             this.host = host;
             return this;
         }
 
+        /**
+         * Sets the port on which the service is listening on.
+         *
+         * @param port the service port.
+         * @return reference to this builder.
+         */
         public ServiceInfoBuilder port(int port) {
             this.port = port;
             return this;
         }
 
+        /**
+         * Add URL path pattern for routing messages to this servie.
+         *
+         * @param path the URL path pattern.
+         * @return reference to this builder.
+         */
         public ServiceInfoBuilder addPath(String path) {
             if (this.paths == null) {
                 this.paths = new ArrayList<>();
@@ -78,10 +147,27 @@ public class ServiceInfo {
             return this;
         }
 
-        public ServiceInfo getServiceInfo() {
-            return new ServiceInfo(name, host, port, paths.toArray(new String[]{}));
+        /**
+         * Builds the {@link ServiceInfo} from the data collected by this builder object.
+         *
+         * @return ServiceInfo instance.
+         * @throws ValidationException if the data provided is not valid.
+         */
+        public ServiceInfo getServiceInfo() throws ValidationException {
+            ServiceInfo service = new ServiceInfo(name, host, port, paths.toArray(new String[]{}));
+            service.validate();
+            return service;
         }
+    }
 
+    /**
+     * Constructs new {@link ServiceInfoBuilder} for the service with the provided name.
+     *
+     * @param serviceName the service name.
+     * @return new {@link ServiceInfoBuilder}
+     */
+    public static ServiceInfoBuilder NewService(String serviceName) {
+        return new ServiceInfoBuilder().setName(serviceName);
     }
 
 }
