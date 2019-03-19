@@ -48,9 +48,9 @@ public class KongServiceRegistry implements ServiceRegistry {
     private JSONObject toKongAPIBody(ServiceInfo service) throws ValidationException {
         JSONObject obj = new JSONObject();
 
-        obj.append("name", service.getName());
-        obj.append("upstream_url", getUpstreamUrl(service));
-        obj.append("uris", String.join(",", service.getPaths()));
+        obj.put("name", service.getName());
+        obj.put("upstream_url", getUpstreamUrl(service));
+        obj.put("uris", String.join(",", service.getPaths()));
 
         return obj;
     }
@@ -78,8 +78,11 @@ public class KongServiceRegistry implements ServiceRegistry {
     }
 
     private JsonNode addApi(JSONObject apiDef) {
+        System.out.println(apiDef.toString());
         try {
-            HttpResponse<JsonNode> response = Unirest.post(getKongUrl("/apis/")).body(apiDef).asJson();
+            HttpResponse<JsonNode> response = Unirest.post(getKongUrl("/apis/"))
+                    .body(apiDef.toString())
+                    .asJson();
             if (response.getStatus() != 201) {
                 throw new ServiceRegistryException(response.getBody().toString());
             }
@@ -91,8 +94,10 @@ public class KongServiceRegistry implements ServiceRegistry {
 
     private JsonNode updateApi(String apiName, JSONObject apiDef) {
         try {
-            HttpResponse<JsonNode> response = Unirest.post(getKongUrl("/apis/" + apiName)).body(apiDef).asJson();
-            if (response.getStatus() != 201) {
+            HttpResponse<JsonNode> response = Unirest.put(getKongUrl("/apis/" + apiName))
+                    .body(apiDef.toString())
+                    .asJson();
+            if (response.getStatus() != 200) {
                 throw new ServiceRegistryException(response.getBody().toString());
             }
             return response.getBody();
