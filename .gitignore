@@ -33,7 +33,6 @@ proguard/
 .gradle/
 build/
 bin/
-gradle/wrapper
 
 #Eclipse
 .settings
