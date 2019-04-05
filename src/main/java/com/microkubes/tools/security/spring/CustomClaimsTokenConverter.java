@@ -13,6 +13,11 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 
+/**
+ * TokenConverter for Microkubes custom claims in the JWT.
+ * Extends the basic Spring functionality and adds support and integration with
+ * Microkubes provided security and JWT based authentication and authorization.
+ */
 public class CustomClaimsTokenConverter extends DefaultAccessTokenConverter {
 
     private String scopeAttribute = SCOPE;
@@ -43,6 +48,11 @@ public class CustomClaimsTokenConverter extends DefaultAccessTokenConverter {
         return new SpringOauth2AuthHolder(request, user, extractAuth(map));
     }
 
+    /**
+     * Extracts the authorities provided by Spring's standard claims and enhances them with Microkubes roles.
+     * @param map the claims map.
+     * @return collection of aggregated authorities.
+     */
     protected Collection<? extends GrantedAuthority> extractAuthorities(Map<String, ?> map){
         Set<GrantedAuthority> allAuthorities = new HashSet<>();
         if (map.containsKey(AUTHORITIES)){
@@ -56,6 +66,11 @@ public class CustomClaimsTokenConverter extends DefaultAccessTokenConverter {
     }
 
 
+    /**
+     * Extracts the {@link Auth} object from the provided JWT claims map.
+     * @param map the claims map
+     * @return extracted {@link Auth} object.
+     */
     protected Auth extractAuth(Map<String, ?> map) {
         String username = (String) map.get(CLAIM_USERNAME);
         String userId = (String) map.get(CLAIM_USER_ID);
@@ -66,13 +81,28 @@ public class CustomClaimsTokenConverter extends DefaultAccessTokenConverter {
         return new Auth(username, userId, roles, organizations, namespaces);
     }
 
+    /**
+     * Helper to tokenize comma-separated string into a list of values.
+     * @param value the comma-separated string.
+     * @return list of extracted values.
+     */
     protected List<String> listFormCommaSeparatedString(String value) {
         if(value == null){
             return  null;
         }
-        return  Arrays.asList(StringUtils.tokenizeToStringArray(value, ","));
+        return Arrays.asList(StringUtils.tokenizeToStringArray(value, ","));
     }
 
+    /**
+     * Enhances the given claims map from Spring's security with Microkubes claims.
+     * Some of the properties, like "username" and "roles" are re-mapped to Spring's
+     * username and authorities custom claims.
+     *
+     * The input map shall not be modified, instead a new map is populated.
+     *
+     * @param map the claims map. This map will not be modified after calling this function.
+     * @return enhanced map containing Microkubes claims.
+     */
     protected Map<String, ?> enhanceClaimsMap(Map<String, ?> map) {
         Map<String, Object> enhanced = new HashMap<>();
         enhanced.putAll(map);

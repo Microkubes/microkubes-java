@@ -24,7 +24,7 @@ import java.security.spec.X509EncodedKeySpec;
 
 @Configuration
 @ConditionalOnProperty(value = {"com.microkubes.security.oauth2_jwt"})
-public class JWTOAuth2Config {
+public class JwtOauth2Config {
 
     @Value("${com.microkubes.security.private_key.path}")
     private String privateKeyPath;
