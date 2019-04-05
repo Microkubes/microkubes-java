@@ -17,6 +17,7 @@ import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
@@ -25,8 +26,11 @@ import java.security.spec.X509EncodedKeySpec;
 @ConditionalOnProperty(value = {"com.microkubes.security.oauth2_jwt"})
 public class JWTOAuth2Config {
 
-    @Value("com.microkubes.security.private_key.path")
+    @Value("${com.microkubes.security.private_key.path}")
     private String privateKeyPath;
+
+    @Value("${com.microkubes.security.public_key.path}")
+    private String publicKeyPath;
 
     @Bean
     public TokenStore getTokenStore() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -37,12 +41,21 @@ public class JWTOAuth2Config {
     }
 
     public KeyPair loadKeyPair() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return  new KeyPair(kf.generatePublic(readPublicKey()), kf.generatePrivate(readPrivateKey()));
+    }
+
+
+    private KeySpec readPrivateKey() throws IOException{
         PemReader reader = new PemReader(new FileReader(privateKeyPath));
         PKCS8EncodedKeySpec privateKey = new PKCS8EncodedKeySpec(reader.readPemObject().getContent());
+        return  privateKey;
+    }
 
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-
-        return  new KeyPair(kf.generatePublic(privateKey), kf.generatePrivate(privateKey));
+    private KeySpec readPublicKey() throws IOException {
+        PemReader reader = new PemReader(new FileReader(publicKeyPath));
+        X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(reader.readPemObject().getContent());
+        return pubKeySpec;
     }
 
 }

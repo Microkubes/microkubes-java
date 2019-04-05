@@ -77,10 +77,10 @@ public class CustomClaimsTokenConverter extends DefaultAccessTokenConverter {
         Map<String, Object> enhanced = new HashMap<>();
         enhanced.putAll(map);
         if(map.containsKey(CLAIM_USERNAME)){
-            enhanced.put(UserAuthenticationConverter.USERNAME, map.get(UserAuthenticationConverter.USERNAME));
+            enhanced.put(UserAuthenticationConverter.USERNAME, map.get(CLAIM_USERNAME));
         }
         if(map.containsKey(CLAIM_ROLES)){
-            enhanced.put(UserAuthenticationConverter.AUTHORITIES, map.get(UserAuthenticationConverter.AUTHORITIES));
+            enhanced.put(UserAuthenticationConverter.AUTHORITIES, map.get(CLAIM_ROLES));
         }
         return enhanced;
     }

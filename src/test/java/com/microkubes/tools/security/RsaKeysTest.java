@@ -5,21 +5,24 @@ import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.lang.reflect.Array;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPrivateCrtKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 
 public class RsaKeysTest {
 
     @Test
     public void testGenerateAndReadRsaKeyFile() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         File tmpFile = File.createTempFile("rsa-key","");
+        File pubkeyFile = File.createTempFile("pub-key", "");
 
         tmpFile.deleteOnExit();
+        pubkeyFile.deleteOnExit();
 
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(1024);
@@ -28,8 +31,15 @@ public class RsaKeysTest {
 
         PemWriter writer = new PemWriter(new FileWriter(tmpFile));
 
-        writer.writeObject(new PemObject("RSA", keyPair.getPrivate().getEncoded()));
+        writer.writeObject(new PemObject("RSA PRIVATE KEY", keyPair.getPrivate().getEncoded()));
         writer.close();
+
+
+        writer = new PemWriter(new FileWriter(pubkeyFile));
+
+        writer.writeObject(new PemObject("RSA PUBLIC KEY", keyPair.getPublic().getEncoded()));
+        writer.close();
+
 
         // -- read the RSA file
 
@@ -41,12 +51,15 @@ public class RsaKeysTest {
         KeyFactory kf = KeyFactory.getInstance("RSA");
 
         PrivateKey privk = kf.generatePrivate(keySpec);
-        PublicKey pubk = kf.generatePublic(keySpec);
+
+        reader = new PemReader(new FileReader(pubkeyFile));
+
+        X509EncodedKeySpec pubkeySpecs = new X509EncodedKeySpec(reader.readPemObject().getContent());
+
+        PublicKey pubk = kf.generatePublic(pubkeySpecs);
 
         assert privk != null;
         assert  pubk != null;
-
-
 
     }
 }

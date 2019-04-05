@@ -11,6 +11,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import(JWTOAuth2Config.class)
-@EnableOAuth2Sso
 public @interface EnableSecurity {
 }
