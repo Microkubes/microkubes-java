@@ -7,7 +7,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 
 /**
- * {@link ServiceRegistry} for Kong Gateway.<p/>
+ * {@link ServiceRegistry} for Kong Gateway.
  * Registers microservices as APIs on the Kong API Gateway.
  */
 public class KongServiceRegistry implements ServiceRegistry {
@@ -29,7 +29,7 @@ public class KongServiceRegistry implements ServiceRegistry {
     }
 
     /**
-     * Registers the service as an API on Kong API Gateway.<p/>
+     * Registers the service as an API on Kong API Gateway.
      * A preliminary check is performed for the existence of the API. If it exists and it has already been registered,
      * then the API definition will be updated. Otherwise, new API is added to the list of APIs on Kong Gateway.
      *
@@ -121,7 +121,7 @@ public class KongServiceRegistry implements ServiceRegistry {
     }
 
     /**
-     * Gets an URL to a path on the admin endpoint on Kong.<p/>
+     * Gets an URL to a path on the admin endpoint on Kong.
      * Basically a helper method for appendig and constructing URLs to specific admin endpoints on Kong.
      *
      * @param path the path to the admin endpoint for which the whole URL is constructed.

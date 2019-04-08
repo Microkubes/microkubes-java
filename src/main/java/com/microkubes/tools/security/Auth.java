@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Authorization object.<p/>
+ * Authorization object.
  * Holds the data for the authenticated and authorized user on the platform.
  * The data is extracted usually from the JWT by the security chain mechanism.
  */
