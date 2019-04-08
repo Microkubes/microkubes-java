@@ -1,4 +1,7 @@
 language: java
 
-script:
+install:
   - ./gradlew assemble -x sign -x uploadArchives
+
+script:
+  - ./gradlew build -x sign -x uploadArchives
