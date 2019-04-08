@@ -24,6 +24,28 @@ Gradle:
 compile group: 'com.microkubes', name: 'tools', version: '0.1.0.RELEASE'
 ```
 
+## Use the latest version from Github
+
+To use the latest version, first clone this repository locally:
+
+```bash
+git clone https://github.com/Microkubes/microkubes-java.git
+```
+
+Make sure you have [Gradle](https://gradle.org/) installed, then:
+
+```bash
+cd microkubes-java
+./gradlew build -x sign -x uploadArchives
+```
+
+Then install the latest version to your local Maven repository:
+
+```bash
+./gradlew publishToMavenLocal
+```
+
+
 # Service API Gateway Integration
 
 The library provides an API for connecting and aut-registering with Kong API Gateway (default for Microkubes).
