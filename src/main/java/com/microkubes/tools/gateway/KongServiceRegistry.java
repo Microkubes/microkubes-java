@@ -78,9 +78,9 @@ public class KongServiceRegistry implements ServiceRegistry {
     }
 
     private JsonNode addApi(JSONObject apiDef) {
-        System.out.println(apiDef.toString());
         try {
             HttpResponse<JsonNode> response = Unirest.post(getKongUrl("/apis/"))
+                    .header("Content-Type", "application/json")
                     .body(apiDef.toString())
                     .asJson();
             if (response.getStatus() != 201) {
@@ -95,6 +95,7 @@ public class KongServiceRegistry implements ServiceRegistry {
     private JsonNode updateApi(String apiName, JSONObject apiDef) {
         try {
             HttpResponse<JsonNode> response = Unirest.put(getKongUrl("/apis/" + apiName))
+                    .header("Content-Type", "application/json")
                     .body(apiDef.toString())
                     .asJson();
             if (response.getStatus() != 200) {
