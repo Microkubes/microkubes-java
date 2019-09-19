@@ -34,7 +34,7 @@ public class KongServiceRegistryTest {
         stubFor(get(urlEqualTo("/apis/test-service"))
                 .willReturn(okJson("{}")));
 
-        stubFor(put(urlEqualTo("/apis/test-service"))
+        stubFor(patch(urlEqualTo("/apis/test-service"))
                 .withRequestBody(equalToJson("{\"name\":\"test-service\", \"uris\":\"/test\",\"upstream_url\":\"http://test-service.local:8080\"}"))
                 .willReturn(okJson("{}").withStatus(200)));
 

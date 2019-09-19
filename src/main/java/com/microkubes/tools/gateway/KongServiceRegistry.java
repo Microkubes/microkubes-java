@@ -94,7 +94,7 @@ public class KongServiceRegistry implements ServiceRegistry {
 
     private JsonNode updateApi(String apiName, JSONObject apiDef) {
         try {
-            HttpResponse<JsonNode> response = Unirest.put(getKongUrl("/apis/" + apiName))
+            HttpResponse<JsonNode> response = Unirest.patch(getKongUrl("/apis/" + apiName))
                     .header("Content-Type", "application/json")
                     .body(apiDef.toString())
                     .asJson();
