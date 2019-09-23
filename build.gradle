@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
+    }
+}
+
 plugins {
     id 'java'
     id 'idea'
@@ -10,15 +19,15 @@ version '0.1.1.RELEASE'
 sourceCompatibility = 1.8
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
-
-
 
 apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'maven-publish'
+apply plugin: 'com.bmuschko.nexus'
 
 
 dependencies {
@@ -38,73 +47,46 @@ dependencies {
     testCompile "com.github.tomakehurst:wiremock-jre8:2.22.0"
 }
 
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
+modifyPom {
+    project {
+        name 'Microkubes Tools for Java'
+        packaging 'jar'
+        description 'Java integration library for Microkubes platform.'
+        url 'https://www.microkubes.com'
 
-artifacts {
-    archives javadocJar, sourcesJar
-}
+        scm {
+            connection 'scm:git:https://github.com/Microkubes/microkubes-java/'
+            developerConnection 'scm:git:git@github.com:Microkubes/microkubes-java.git'
+            url 'https://github.com/Microkubes/microkubes-java/'
+        }
 
-signing {
-    sign configurations.archives
-}
+        licenses {
+            license {
+                name 'The Apache License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution 'repo'
+            }
+        }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
+        developers {
+            developer {
+                id 'pavle.jonoski'
+                name 'Pavle Jonoski'
+                email 'pavle.jonoski@keitaro.com'
+            }
         }
     }
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+extraArchive {
+    sources = true
+    tests = true
+    javadoc = true
+}
 
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: findProperty('ossrhUsername'), password: findProperty('ossrhPassword'))
-            }
-
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: findProperty('ossrhUsername'), password: findProperty('ossrhPassword'))
-            }
-
-            pom.project {
-                name 'Microkubes Tools for Java'
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description 'Java integration library for Microkubes platform.'
-                url 'http://www.example.com/example-application'
-
-                scm {
-                    connection 'scm:git:https://github.com/Microkubes/microkubes-java/'
-                    developerConnection 'scm:git:git@github.com:Microkubes/microkubes-java.git'
-                    url 'https://github.com/Microkubes/microkubes-java/'
-                }
-
-                licenses {
-                    license {
-                        name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'pavle.jonoski'
-                        name 'Pavle Jonoski'
-                        email 'pavle.jonoski@keitaro.com'
-                    }
-                }
-            }
-        }
-    }
+nexus {
+    sign = true
+    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
 }
