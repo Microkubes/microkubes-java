@@ -86,7 +86,22 @@ internal domain of the service as visible to the Consul DNS.
 * `com.microkubes.service.port` - the port on which the service listens to.
 * `com.microkubes.service.paths` - routing paths (separated by comma) for the incoming requests to be proxied to this microservice.
 
+Additional service configuration options:
 
+* `com.microkubes.service.preserve_host` - Whether to pass the `Host` header to the upstream API service. Default `false`.
+* `com.microkubes.service.retries` - The number of retries to execute upon failure to proxy. Default `5`.
+* `com.microkubes.service.strip_uri` - When matching an API via one of the `uris` prefixes, strip that matching prefix 
+from the upstream URI to be requested.  Default `true`.
+* `com.microkubes.service.upstream_connect_timeout` - The timeout in milliseconds for establishing a connection between
+the API Gateway and the service. Default `60000`.
+* `com.microkubes.service.upstream_read_timeout` - he timeout in milliseconds between two successive read operations for
+transmitting a request to your the service. Default `60000`.
+* `com.microkubes.service.upstream_send_timeout` - The timeout in milliseconds between two successive write operations
+for transmitting a request to the service. Default `60000`.
+* `com.microkubes.service.https_only` - To be enabled if you wish to only serve your API through HTTPS, on the appropriate
+port (8443 by default). Default `false`.
+* `com.microkubes.service.http_if_terminated` - Tell the API Gateway to consider the `X-Forwarded-Proto` header when enforcing
+HTTPS only traffic. Default `false`.
 
 # Security Integration
 

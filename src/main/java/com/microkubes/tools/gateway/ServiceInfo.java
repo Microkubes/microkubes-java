@@ -1,7 +1,9 @@
 package com.microkubes.tools.gateway;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * ServiceInfo holds the registration data for a Microservice on the platform.
@@ -13,6 +15,8 @@ public class ServiceInfo {
     private int port;
     private String[] paths;
 
+    private Map<String, Object> properties = new HashMap<>();
+
     /**
      * Constructs new empty {@link ServiceInfo}.
      */
@@ -20,20 +24,23 @@ public class ServiceInfo {
     }
 
     /**
-     * Constructs {@link ServiceInfo} from the given serice registration data.
+     * Constructs {@link ServiceInfo} from the given service registration data.
      *
-     * @param name  the microservice name. The service will be registered under this name on the API Gateway.
-     * @param host  the service container host name. This is used in the name to IP resolution when routing messages to
-     *              the microservice.
-     * @param port  the port on which the service listens to. This is the port on the container on which the service can
-     *              can be accessed on.
-     * @param paths list of URI paths used as patters for routing messages to the service.
+     * @param name       the microservice name. The service will be registered under this name on the API Gateway.
+     * @param host       the service container host name. This is used in the name to IP resolution when routing messages to
+     *                   the microservice.
+     * @param port       the port on which the service listens to. This is the port on the container on which the service can
+     *                   can be accessed on.
+     * @param paths      list of URI paths used as patters for routing messages to the service.
+     * @param properties {@link Map} containing additional service properties for finer control over the registered
+     *                   service.
      */
-    public ServiceInfo(String name, String host, int port, String[] paths) {
+    public ServiceInfo(String name, String host, int port, String[] paths, Map<String, Object> properties) {
         this.name = name;
         this.host = host;
         this.port = port;
         this.paths = paths;
+        this.properties = properties;
     }
 
     public String getName() {
@@ -68,6 +75,14 @@ public class ServiceInfo {
         this.paths = paths;
     }
 
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
+    }
+
     /**
      * Performs validation on the {@link ServiceInfo} data.
      *
@@ -96,6 +111,7 @@ public class ServiceInfo {
         private String host;
         private int port;
         private List<String> paths;
+        private Map<String, Object> properties = new HashMap<>();
 
         private ServiceInfoBuilder() {
         }
@@ -147,6 +163,11 @@ public class ServiceInfo {
             return this;
         }
 
+        public ServiceInfoBuilder setProperty(String name, Object value) {
+            this.properties.put(name, value);
+            return this;
+        }
+
         /**
          * Builds the {@link ServiceInfo} from the data collected by this builder object.
          *
@@ -154,7 +175,7 @@ public class ServiceInfo {
          * @throws ValidationException if the data provided is not valid.
          */
         public ServiceInfo getServiceInfo() throws ValidationException {
-            ServiceInfo service = new ServiceInfo(name, host, port, paths.toArray(new String[]{}));
+            ServiceInfo service = new ServiceInfo(name, host, port, paths.toArray(new String[]{}), properties);
             service.validate();
             return service;
         }
