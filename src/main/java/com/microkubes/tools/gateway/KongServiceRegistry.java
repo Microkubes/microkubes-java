@@ -6,6 +6,8 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 
+import java.util.Map;
+
 /**
  * {@link ServiceRegistry} for Kong Gateway.
  * Registers microservices as APIs on the Kong API Gateway.
@@ -51,6 +53,10 @@ public class KongServiceRegistry implements ServiceRegistry {
         obj.put("name", service.getName());
         obj.put("upstream_url", getUpstreamUrl(service));
         obj.put("uris", String.join(",", service.getPaths()));
+
+        for (Map.Entry<String, Object> entry : service.getProperties().entrySet()) {
+            obj.put(entry.getKey(), entry.getValue());
+        }
 
         return obj;
     }
