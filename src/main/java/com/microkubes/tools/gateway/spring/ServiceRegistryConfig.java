@@ -28,6 +28,7 @@ public class ServiceRegistryConfig {
     @Value("${com.microkubes.service.paths}")
     private String[] servicePaths;
 
+    // Additional service API configuration properties
     @Value("${com.microkubes.service.preserve_host:false}")
     private Boolean preserveHost;
     @Value("${com.microkubes.service.retries:5}")
