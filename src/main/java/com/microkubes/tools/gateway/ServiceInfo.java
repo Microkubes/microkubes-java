@@ -26,12 +26,14 @@ public class ServiceInfo {
     /**
      * Constructs {@link ServiceInfo} from the given service registration data.
      *
-     * @param name  the microservice name. The service will be registered under this name on the API Gateway.
-     * @param host  the service container host name. This is used in the name to IP resolution when routing messages to
-     *              the microservice.
-     * @param port  the port on which the service listens to. This is the port on the container on which the service can
-     *              can be accessed on.
-     * @param paths list of URI paths used as patters for routing messages to the service.
+     * @param name       the microservice name. The service will be registered under this name on the API Gateway.
+     * @param host       the service container host name. This is used in the name to IP resolution when routing messages to
+     *                   the microservice.
+     * @param port       the port on which the service listens to. This is the port on the container on which the service can
+     *                   can be accessed on.
+     * @param paths      list of URI paths used as patters for routing messages to the service.
+     * @param properties {@link Map} containing additional service properties for finer control over the registered
+     *                   service.
      */
     public ServiceInfo(String name, String host, int port, String[] paths, Map<String, Object> properties) {
         this.name = name;

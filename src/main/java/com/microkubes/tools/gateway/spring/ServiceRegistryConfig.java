@@ -32,7 +32,7 @@ public class ServiceRegistryConfig {
     private Boolean preserveHost;
     @Value("${com.microkubes.service.retries:5}")
     private Integer retries;
-    @Value("${com.microkubes.service.strip_uri:false}")
+    @Value("${com.microkubes.service.strip_uri:true}")
     private Boolean stripUri;
     @Value("${com.microkubes.service.upstream_connect_timeout:60000}")
     private Integer upstreamConnectTimeout;
@@ -40,6 +40,10 @@ public class ServiceRegistryConfig {
     private Integer upstreamReadTimeout;
     @Value("${com.microkubes.service.upstream_send_timeout:60000}")
     private Integer upstreamSendTimeout;
+    @Value("${com.microkubes.service.https_only:false}")
+    private Integer httpsOnly;
+    @Value("${com.microkubes.service.http_if_terminated:false}")
+    private Integer httpIfTerminated;
 
 
     @Bean
@@ -65,6 +69,8 @@ public class ServiceRegistryConfig {
         properties.put("upstream_connect_timeout", upstreamConnectTimeout);
         properties.put("upstream_read_timeout", upstreamReadTimeout);
         properties.put("upstream_send_timeout", upstreamSendTimeout);
+        properties.put("https_only", httpsOnly);
+        properties.put("http_if_terminated", httpIfTerminated);
 
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
             if (entry.getValue() != null) {
