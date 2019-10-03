@@ -29,22 +29,22 @@ public class ServiceRegistryConfig {
     private String[] servicePaths;
 
     // Additional service API configuration properties
-    @Value("${com.microkubes.service.preserve_host:false}")
+    @Value("${com.microkubes.service.preserve-host:false}")
     private Boolean preserveHost;
     @Value("${com.microkubes.service.retries:5}")
     private Integer retries;
-    @Value("${com.microkubes.service.strip_uri:true}")
+    @Value("${com.microkubes.service.strip-uri:true}")
     private Boolean stripUri;
-    @Value("${com.microkubes.service.upstream_connect_timeout:60000}")
+    @Value("${com.microkubes.service.upstream-connect-timeout:60000}")
     private Integer upstreamConnectTimeout;
-    @Value("${com.microkubes.service.upstream_read_timeout:60000}")
+    @Value("${com.microkubes.service.upstream-read-timeout:60000}")
     private Integer upstreamReadTimeout;
-    @Value("${com.microkubes.service.upstream_send_timeout:60000}")
+    @Value("${com.microkubes.service.upstream-send-timeout:60000}")
     private Integer upstreamSendTimeout;
-    @Value("${com.microkubes.service.https_only:false}")
-    private Integer httpsOnly;
-    @Value("${com.microkubes.service.http_if_terminated:false}")
-    private Integer httpIfTerminated;
+    @Value("${com.microkubes.service.https-only:false}")
+    private Boolean httpsOnly;
+    @Value("${com.microkubes.service.http-if-terminated:false}")
+    private Boolean httpIfTerminated;
 
 
     @Bean
