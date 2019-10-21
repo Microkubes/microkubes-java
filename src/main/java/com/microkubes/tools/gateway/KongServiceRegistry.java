@@ -5,6 +5,8 @@ import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -14,6 +16,8 @@ import java.util.Map;
  */
 public class KongServiceRegistry implements ServiceRegistry {
     private String kongAdminUrl;
+
+    private Logger logger = LoggerFactory.getLogger(KongServiceRegistry.class);
 
     /**
      * Builds new empty {@link KongServiceRegistry}.
@@ -42,6 +46,9 @@ public class KongServiceRegistry implements ServiceRegistry {
         try {
             service.validate();
             addOrUpdateApi(service.getName(), toKongAPIBody(service));
+            logger.info("Service '{}' registered on Kong API Gateway.", service.getName());
+            logger.debug("Service registration info: {}", service.toString());
+            registerPlugins(service);
         } catch (ValidationException e) {
             throw new ServiceRegistryException(e);
         }
@@ -117,7 +124,7 @@ public class KongServiceRegistry implements ServiceRegistry {
      * Implements the logic for adding or updating an exiting API on Kong API Gateway.
      *
      * @param apiName the name of the API. This is extracted from the {@link ServiceInfo#getName()}.
-     * @param apiDef  the API definition as JSON ojbect to be send to Kong.
+     * @param apiDef  the API definition as JSON object to be send to Kong.
      * @return the response as JSON received from Kong.
      */
     protected JsonNode addOrUpdateApi(String apiName, JSONObject apiDef) {
@@ -125,6 +132,109 @@ public class KongServiceRegistry implements ServiceRegistry {
             return updateApi(apiName, apiDef);
         }
         return addApi(apiDef);
+    }
+
+
+    /**
+     * Adds (registers/installs) the plugin for the given service.
+     *
+     * @param apiName the name of the service.
+     * @param plugin  the plugin to install
+     * @return JsonNode of the Kong response for the new plugin.
+     */
+    protected JsonNode registerPlugin(String apiName, ServicePlugin plugin) {
+        JSONObject pluginData = toJson(plugin);
+        try {
+            HttpResponse<JsonNode> response = Unirest
+                    .post(getKongUrl(String.format("/apis/%s/plugins", apiName)))
+                    .header("Content-Type", "application/json")
+                    .body(pluginData)
+                    .asJson();
+            if (response.getStatus() != 200 && response.getStatus() != 201) {
+                logger.debug("Failed to install plugin. Response code was: {} {}", response.getStatus(), response.getStatusText());
+                throw new ServiceRegistryException(response.getBody().toString());
+            }
+            logger.info("API {}: Installed plugin: {}", apiName, plugin);
+            return response.getBody();
+        } catch (UnirestException e) {
+            throw new ServiceRegistryException(e);
+        }
+    }
+
+    /**
+     * Clears all plugins registered for this service.<br/>
+     * <p>
+     * This deletes all plugins for the given service on Kong.
+     *
+     * @param service
+     */
+    protected void clearPlugins(ServiceInfo service) {
+        try {
+            HttpResponse<JsonNode> response = Unirest
+                    .get(getKongUrl(String.format("/apis/%s/plugins", service.getName())))
+                    .asJson();
+            if (response.getStatus() != 200) {
+                throw new ServiceRegistryException(response.getBody().toString());
+            }
+            JsonNode resp = response.getBody();
+            for (Object plugin : resp.getObject().getJSONArray("data")) {
+                if (plugin instanceof JSONObject) {
+                    deletePlugin(service.getName(), ((JSONObject) plugin).getString("id"));
+                }
+            }
+        } catch (UnirestException e) {
+            throw new ServiceRegistryException(e);
+        }
+        logger.debug("Earlier plugins cleared.");
+    }
+
+    /**
+     * Deletes single plugin for the given service.
+     *
+     * @param apiName  the name of the service
+     * @param pluginId the id of the plugin to delete.
+     * @throws UnirestException
+     */
+    private void deletePlugin(String apiName, String pluginId) throws UnirestException {
+        logger.debug("API {}: removing plugin: {}", apiName, pluginId);
+        HttpResponse<String> response = Unirest.delete(getKongUrl(String.format("/apis/%s/plugins/%s", apiName, pluginId))).asString();
+        if (response.getStatus() != 200 && response.getStatus() != 204) {
+            logger.debug("Failed to remove plugin. The response code was: {} {}", response.getStatus(), response.getStatusText());
+            throw new ServiceRegistryException(response.getBody());
+        }
+    }
+
+
+    /**
+     * Registers the plugins defined for this service.
+     *
+     * @param service {@link ServiceInfo} representing the service.
+     */
+    protected void registerPlugins(ServiceInfo service) {
+        logger.debug("Registering plugins for service...");
+        clearPlugins(service);
+        if (service.getPlugins() == null || service.getPlugins().length == 0) {
+            return;
+        }
+        for (ServicePlugin plugin : service.getPlugins()) {
+            registerPlugin(service.getName(), plugin);
+        }
+    }
+
+    private JSONObject toJson(ServicePlugin plugin) {
+        JSONObject data = new JSONObject();
+        data.put("name", plugin.getName());
+
+        JSONObject config = new JSONObject();
+        data.put("config", config);
+
+        for (Map.Entry<String, String> entry : plugin.getProperties().entrySet()) {
+            if (entry.getKey().startsWith("config.")) {
+                config.put(entry.getKey().substring("config.".length()), entry.getValue());
+            }
+        }
+        logger.debug("Service plugin JSON: {}", data.toString(2));
+        return data;
     }
 
     /**

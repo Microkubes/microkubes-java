@@ -1,9 +1,6 @@
 package com.microkubes.tools.gateway;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * ServiceInfo holds the registration data for a Microservice on the platform.
@@ -16,6 +13,7 @@ public class ServiceInfo {
     private String[] paths;
 
     private Map<String, Object> properties = new HashMap<>();
+    private ServicePlugin[] plugins;
 
     /**
      * Constructs new empty {@link ServiceInfo}.
@@ -34,13 +32,15 @@ public class ServiceInfo {
      * @param paths      list of URI paths used as patters for routing messages to the service.
      * @param properties {@link Map} containing additional service properties for finer control over the registered
      *                   service.
+     * @param plugins    list of {@link ServicePlugin} plugins configuration.
      */
-    public ServiceInfo(String name, String host, int port, String[] paths, Map<String, Object> properties) {
+    public ServiceInfo(String name, String host, int port, String[] paths, Map<String, Object> properties, ServicePlugin[] plugins) {
         this.name = name;
         this.host = host;
         this.port = port;
         this.paths = paths;
         this.properties = properties;
+        this.plugins = plugins;
     }
 
     public String getName() {
@@ -83,6 +83,10 @@ public class ServiceInfo {
         this.properties = properties;
     }
 
+    public ServicePlugin[] getPlugins() {
+        return plugins;
+    }
+
     /**
      * Performs validation on the {@link ServiceInfo} data.
      *
@@ -103,6 +107,18 @@ public class ServiceInfo {
         }
     }
 
+    @Override
+    public String toString() {
+        return "ServiceInfo{" +
+                "name='" + name + '\'' +
+                ", host='" + host + '\'' +
+                ", port=" + port +
+                ", paths=" + Arrays.toString(paths) +
+                ", properties=" + properties +
+                ", plugins=" + (plugins != null ? plugins.length + "" : "none") +
+                '}';
+    }
+
     /**
      * Builds new {@link ServiceInfo}.
      */
@@ -112,6 +128,7 @@ public class ServiceInfo {
         private int port;
         private List<String> paths;
         private Map<String, Object> properties = new HashMap<>();
+        private List<ServicePlugin> plugins = new LinkedList<>();
 
         private ServiceInfoBuilder() {
         }
@@ -163,6 +180,12 @@ public class ServiceInfo {
             return this;
         }
 
+        public ServiceInfoBuilder addPlugin(ServicePlugin plugin) {
+            this.plugins.add(plugin);
+            return this;
+        }
+
+
         public ServiceInfoBuilder setProperty(String name, Object value) {
             this.properties.put(name, value);
             return this;
@@ -175,7 +198,7 @@ public class ServiceInfo {
          * @throws ValidationException if the data provided is not valid.
          */
         public ServiceInfo getServiceInfo() throws ValidationException {
-            ServiceInfo service = new ServiceInfo(name, host, port, paths.toArray(new String[]{}), properties);
+            ServiceInfo service = new ServiceInfo(name, host, port, paths.toArray(new String[]{}), properties, plugins.toArray(new ServicePlugin[]{}));
             service.validate();
             return service;
         }

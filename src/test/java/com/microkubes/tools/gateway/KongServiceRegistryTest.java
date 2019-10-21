@@ -20,6 +20,8 @@ public class KongServiceRegistryTest {
                 .withRequestBody(equalToJson("{\"name\":\"test-service\", \"uris\":\"/test\",\"upstream_url\":\"http://test-service.local:8080\"}"))
                 .willReturn(okJson("{}").withStatus(201)));
 
+        stubFor(get(urlEqualTo("/apis/test-service/plugins")).willReturn(okJson("{\"data\": []}")));
+
         KongServiceRegistry serviceRegistry = new KongServiceRegistry(rule.url("/"));
 
         serviceRegistry.register(ServiceInfo.NewService("test-service")
@@ -38,6 +40,8 @@ public class KongServiceRegistryTest {
                 .withRequestBody(equalToJson("{\"name\":\"test-service\", \"uris\":\"/test\",\"upstream_url\":\"http://test-service.local:8080\"}"))
                 .willReturn(okJson("{}").withStatus(200)));
 
+        stubFor(get(urlEqualTo("/apis/test-service/plugins")).willReturn(okJson("{\"data\": []}")));
+
         KongServiceRegistry serviceRegistry = new KongServiceRegistry(rule.url("/"));
 
         serviceRegistry.register(ServiceInfo.NewService("test-service")
@@ -45,5 +49,37 @@ public class KongServiceRegistryTest {
                 .port(8080)
                 .addPath("/test")
                 .getServiceInfo());
+    }
+
+    @Test
+    public void testInstallPlugin() throws ValidationException {
+        stubFor(get(urlEqualTo("/apis/test-service/plugins")).willReturn(okJson("{" +
+                "\"data\":" + "[" +
+                "{" +
+                "\"id\": \"test-plug-id\"," +
+                "\"name\": \"test-plug\"" +
+                "}" +
+                "]" +
+                "}")));
+
+        stubFor(delete(urlEqualTo("/apis/test-service/plugins/test-plug-id")).willReturn(noContent()));
+        stubFor(post(urlEqualTo("/apis/test-service/plugins")).withRequestBody(equalToJson("{\"name\": \"test-plug\", \"config\": {\"test_prop\": \"test_val\"}}", true, true)));
+
+
+        KongServiceRegistry serviceRegistry = new KongServiceRegistry(rule.url("/"));
+
+
+        ServicePlugin plugin = new ServicePlugin("test-plug");
+        plugin.setProperty("config.test_prop", "test_val");
+
+        ServiceInfo serviceInfo = ServiceInfo.NewService("test-service").host("test-service.local")
+                .port(8080)
+                .addPath("/test")
+                .addPlugin(plugin)
+                .getServiceInfo();
+
+        serviceRegistry.registerPlugins(serviceInfo);
+
+
     }
 }
