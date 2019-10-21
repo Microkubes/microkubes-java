@@ -46,7 +46,7 @@ public class ServicePluginsConfig implements ApplicationContextAware {
     /**
      * Returns a map of the currently configured plugins for the service.
      *
-     * @return
+     * @return the configured plugins in a form of a map.
      */
     public Map<String, ServicePlugin> getPlugins() {
         return plugins;
@@ -130,7 +130,7 @@ public class ServicePluginsConfig implements ApplicationContextAware {
     }
 
     /**
-     * Normalizes a property name as loaded from a property file or given in the current process environment. <br/>
+     * Normalizes a property name as loaded from a property file or given in the current process environment.
      * <p>
      * The name is normalized in the following way:
      * <ul>
@@ -146,8 +146,8 @@ public class ServicePluginsConfig implements ApplicationContextAware {
      *
      * </ul>
      *
-     * @param name
-     * @return
+     * @param name the name of the property to normalize.
+     * @return normalized property name.
      */
     public static String normalizePropertyName(String name) {
         return kebabCaseToUnderscoreNotation(underscoreCaseToDotNotation(name));
@@ -156,8 +156,8 @@ public class ServicePluginsConfig implements ApplicationContextAware {
     /**
      * Converts a string in underscore notation (<code>test_prop</code>) to dot notation (<code>test.prop</code>).
      *
-     * @param val
-     * @return
+     * @param val the string value in underscore notation to be transformed.
+     * @return the transformed string value into dot notation.
      */
     public static String underscoreCaseToDotNotation(String val) {
         return val.replaceAll("([^_])(_)([^_])", "$1.$3").replaceAll("([^_])(__)([^_])", "$1_$3");
@@ -166,8 +166,8 @@ public class ServicePluginsConfig implements ApplicationContextAware {
     /**
      * Converts a string in kebab-case notation (<code>test-prop</code>) to underscore notation (<code>test_prop</code>).
      *
-     * @param val
-     * @return
+     * @param val the string value in kebab-case to be transformed.
+     * @return the transformed value in underscore notation.
      */
     public static String kebabCaseToUnderscoreNotation(String val) {
         return val.replaceAll("-", "_");

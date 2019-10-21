@@ -16,7 +16,7 @@ public class ServicePlugin {
     /**
      * Service plugin with the specified name.
      *
-     * @param name
+     * @param name the plugin name.
      */
     public ServicePlugin(String name) {
         this.name = name;
@@ -29,7 +29,7 @@ public class ServicePlugin {
     /**
      * The properties for the plugin to be configured on the API Gateway.
      *
-     * @return
+     * @return the properties of the plugins in a form of a map.
      */
     public Map<String, String> getProperties() {
         return properties;

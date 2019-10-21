@@ -162,11 +162,11 @@ public class KongServiceRegistry implements ServiceRegistry {
     }
 
     /**
-     * Clears all plugins registered for this service.<br/>
+     * Clears all plugins registered for this service.
      * <p>
      * This deletes all plugins for the given service on Kong.
      *
-     * @param service
+     * @param service the ServiceInfo that describes the service.
      */
     protected void clearPlugins(ServiceInfo service) {
         try {
