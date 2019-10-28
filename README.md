@@ -103,6 +103,48 @@ port (8443 by default). Default `false`.
 * `com.microkubes.service.http-if-terminated` - Tell the API Gateway to consider the `X-Forwarded-Proto` header when enforcing
 HTTPS only traffic. Default `false`.
 
+
+## Adding plugins to the service definition
+
+If you wan to enable specific plugins (currently supported for Kong API Gateway), you can do so by adding
+the specific properties in the configuration file, or via ENV variables.
+
+Plugins configuration is loaded from the properties basd on a property name prefix. The general pattern is:
+
+```
+com.microkubes.service.plugins.<plugin_name>.<plugin_prop>
+```
+or as an ENV variable:
+
+```
+com_microkubes_service_plugins_<plugin_name>_<plugin_prop>
+```
+
+where:
+* `plugin_name` is the name of the plugin to be enabled, for example: `cors`.
+* `plugin_prop` are the specific propeties for the plugin. Usually something like: `config.max_age`, `config.headers` etc.
+
+Here is an example of configuring the `cors` plugin in a `.properties` file:
+
+```properties
+com.microkubes.service.plugins.cors.config.methods=GET,PUT,POST,DELETE
+com.microkubes.service.plugins.cors.config.origins=*
+com.microkubes.service.plugins.cors.config.headers=Authorization,X-Auth-Token
+com.microkubes.service.plugins.cors.config.credentials=true
+com.microkubes.service.plugins.cors.config.max_age=3600
+```
+This would enable and configure the `cors` plugin.
+
+The same configuration can be done via environment variables:
+
+```shell
+com_microkubes_service_plugins_cors_config_methods=GET,PUT,POST,DELETE
+com_microkubes_service_plugins_cors_config_origins=*
+com_microkubes_service_plugins_cors_config_headers=Authorization,X-Auth-Token
+com_microkubes_service_plugins_cors_config_credentials=true
+com_microkubes_service_plugins_cors_config_max__age=3600
+```
+
 # Security Integration
 
 The library offers seamless integration with Microkubes security with Spring Security and SpringBoot enabled microservices.

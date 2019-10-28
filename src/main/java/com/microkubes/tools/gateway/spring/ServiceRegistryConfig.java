@@ -1,18 +1,18 @@
 package com.microkubes.tools.gateway.spring;
 
-import com.microkubes.tools.gateway.KongServiceRegistry;
-import com.microkubes.tools.gateway.ServiceInfo;
-import com.microkubes.tools.gateway.ServiceRegistry;
-import com.microkubes.tools.gateway.ValidationException;
+import com.microkubes.tools.gateway.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@ComponentScan(basePackages = "com.microkubes.tools.gateway.spring")
 @ConditionalOnProperty(prefix = "com.microkubes.gateway", name = "gateway-url")
 public class ServiceRegistryConfig {
 
@@ -46,6 +46,9 @@ public class ServiceRegistryConfig {
     @Value("${com.microkubes.service.http-if-terminated:false}")
     private Boolean httpIfTerminated;
 
+    @Autowired
+    private ServicePluginsConfig servicePlugins;
+
 
     @Bean
     public ServiceRegistry getServiceRegistry() {
@@ -77,6 +80,9 @@ public class ServiceRegistryConfig {
             if (entry.getValue() != null) {
                 serviceInfo.setProperty(entry.getKey(), entry.getValue());
             }
+        }
+        for (ServicePlugin plugin : servicePlugins.getPlugins().values()) {
+            serviceInfo.addPlugin(plugin);
         }
 
         return serviceInfo.getServiceInfo();
