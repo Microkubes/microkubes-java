@@ -3,11 +3,11 @@ package com.microkubes.tools.gateway.spring;
 import com.microkubes.tools.gateway.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,14 +45,24 @@ public class ServiceRegistryConfig {
     private Boolean httpsOnly;
     @Value("${com.microkubes.service.http-if-terminated:false}")
     private Boolean httpIfTerminated;
+    @Value("${com.microkubes.gateway.adapter:kong-v0}")
+    private String gatewayAdapterName;
 
     @Autowired
     private ServicePluginsConfig servicePlugins;
 
+    private HashMap<String, Class<? extends ServiceRegistry>> gatewayAdapters = new HashMap<>();
 
     @Bean
+    @ConditionalOnMissingBean(ServiceRegistry.class)
     public ServiceRegistry getServiceRegistry() {
-        return new KongServiceRegistry(apiGatewayURL);
+        defineAdapters();
+        Class<? extends ServiceRegistry> adapterClass = gatewayAdapters.get(gatewayAdapterName);
+        try {
+            return adapterClass.getDeclaredConstructor(String.class).newInstance(gatewayAdapterName);
+        } catch (Exception e) {
+            throw new ServiceRegistryException("Gateway adapter [" + gatewayAdapterName + "] is not supported");
+        }
     }
 
     @Bean
@@ -86,5 +96,13 @@ public class ServiceRegistryConfig {
         }
 
         return serviceInfo.getServiceInfo();
+    }
+
+    private void defineAdapters() {
+        if (gatewayAdapters.size() > 0) {
+            return;
+        }
+        gatewayAdapters.put("kong-v0", KongServiceRegistry.class);
+        gatewayAdapters.put("kong-v2", Kong2ServiceRegistry.class);
     }
 }
