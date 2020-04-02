@@ -3,11 +3,12 @@ package com.microkubes.tools.gateway;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.ArrayList;
 
 public class Kong2ServiceRegistry implements ServiceRegistry {
 
@@ -101,10 +102,19 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
                 String responseBody = response.getBody().toString();
                 throw new ServiceRegistryException(responseBody);
             }
+            String name = service.getName();
+            String path = String.format("/service/%s/routes", name);
+            url = getKongUrl(path);
+            body = getRouteBody(service);
+            response = Unirest.post(url)
+                    .header("Content-Type", "application/json").body(body).asJson();
+            if (response.getStatus() != 201) {
+                String responseBody = response.getBody().toString();
+                throw new ServiceRegistryException(responseBody);
+            }
         } catch (Exception e) {
             throw new ServiceRegistryException(e);
         }
-        // TODO: add routes
         // TODO: add plugins
     }
 
@@ -125,11 +135,35 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
                 String responseBody = response.getBody().toString();
                 throw new ServiceRegistryException(responseBody);
             }
+            path = String.format("/service/%s/routes");
+            url = getKongUrl(path);
+            response = Unirest.get(url)
+                    .header("Content-Type", "application/json").asJson();
+            JSONArray routeList = response.getBody().getArray();
+            body = getRouteBody(service);
+            if (routeList.length() > 0) {
+                JSONObject routeBody = routeList.getJSONObject(0);
+                String id = routeBody.getString("id");
+                path = String.format("/service/%s/routes/%s", name, id);
+                url = getKongUrl(path);
+                response = Unirest.patch(url)
+                        .header("Content-Type", "application/json").body(body).asJson();
+                if (response.getStatus() != 200) {
+                    String responseBody = response.getBody().toString();
+                    throw new ServiceRegistryException(responseBody);
+                }
+            } else {
+                path = String.format("/service/%s/routes", name);
+                url = getKongUrl(path);
+                response = Unirest.post(url)
+                        .header("Content-Type", "application/json").body(body).asJson();
+                if (response.getStatus() != 201) {
+                    String responseBody = response.getBody().toString();
+                    throw new ServiceRegistryException(responseBody);
+                }
+            }
         } catch (Exception e) {
             throw new ServiceRegistryException(e);
-        }
-        for (String route : service.getPaths()) {
-            // TODO: add/update/delete routes
         }
         for (ServicePlugin plugin : service.getPlugins()) {
             // TODO: add/update/delete plugins
@@ -139,11 +173,39 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
     private String getServiceBody(ServiceInfo service) throws ValidationException {
         JSONObject obj = new JSONObject();
         String name = service.getName();
-        String host = service.getHost();
         String url = getUpstreamUrl(service);
+        Integer retries = (Integer) service.getProperties().get("retries");
+        Integer connectTimeout = (Integer) service.getProperties().get("upstream_connect_timeout");
+        Integer readTimeout = (Integer) service.getProperties().get("upstream_read_timeout");
+        Integer writeTimeout = (Integer) service.getProperties().get("upstream_send_timeout");
+
         obj.put("name", name);
-        obj.put("host", host);
         obj.put("url", url);
+        obj.put("retries", retries);
+        obj.put("connect_timeout", connectTimeout);
+        obj.put("read_timeout", readTimeout);
+        obj.put("write_timeout", writeTimeout);
+
+        return obj.toString();
+    }
+
+    private String getRouteBody(ServiceInfo service) {
+        JSONObject obj = new JSONObject();
+        String[] paths = service.getPaths();
+        Boolean preserveHost = (Boolean) service.getProperties().get("preserve_host");
+        Boolean stripPath = (Boolean) service.getProperties().get("strip_uri");
+        Boolean httpsOnly = (Boolean) service.getProperties().get("https_only");
+        ArrayList<String> protocols = new ArrayList<>();
+        protocols.add("https");
+        if (!httpsOnly) {
+            protocols.add("http");
+        }
+
+        obj.put("paths", paths);
+        obj.put("preserve_host", preserveHost);
+        obj.put("strip_path", stripPath);
+        obj.put("protocols", protocols);
+
         return obj.toString();
     }
 
