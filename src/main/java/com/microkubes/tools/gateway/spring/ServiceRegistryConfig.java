@@ -59,7 +59,7 @@ public class ServiceRegistryConfig {
         defineAdapters();
         Class<? extends ServiceRegistry> adapterClass = gatewayAdapters.get(gatewayAdapterName);
         try {
-            return adapterClass.getDeclaredConstructor(String.class).newInstance(gatewayAdapterName);
+            return adapterClass.getDeclaredConstructor(String.class).newInstance(apiGatewayURL);
         } catch (Exception e) {
             throw new ServiceRegistryException("Gateway adapter [" + gatewayAdapterName + "] is not supported");
         }

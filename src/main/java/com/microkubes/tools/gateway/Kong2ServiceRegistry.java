@@ -56,10 +56,12 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
      * @param service the definition of the service contained in {@link ServiceInfo}
      */
     private void addOrUpdateService(ServiceInfo service) {
+        logger.info("Service '{}' checking....", service.getName());
         if (serviceAlreadyExists(service)) {
             updateService(service);
+        } else {
+            addService(service);
         }
-        addService(service);
     }
 
 
@@ -81,9 +83,9 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
             if (response.getStatus() == 404) {
                 return false;
             }
-            throw new ServiceRegistryException(response.getBody());
+            throw new ServiceRegistryException(String.format("response: %s", response.getBody()));
         } catch (Exception e) {
-            throw new ServiceRegistryException(e);
+            throw new ServiceRegistryException("Failed on checking for already existing service", e);
         }
     }
 
@@ -93,28 +95,29 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
      * @param service the definition of the service contained in {@link ServiceInfo}
      */
     private void addService(ServiceInfo service) {
-        String url = getKongUrl("/service");
+        String url = getKongUrl("/services");
         try {
             String body = getServiceBody(service);
             HttpResponse<JsonNode> response = Unirest.post(url)
                     .header("Content-Type", "application/json").body(body).asJson();
             if (response.getStatus() != 201) {
                 String responseBody = response.getBody().toString();
-                throw new ServiceRegistryException(responseBody);
+                throw new ServiceRegistryException(String.format("service response: %s", responseBody));
             }
             String name = service.getName();
-            String path = String.format("/service/%s/routes", name);
+            String path = String.format("/services/%s/routes", name);
             url = getKongUrl(path);
             body = getRouteBody(service);
             response = Unirest.post(url)
                     .header("Content-Type", "application/json").body(body).asJson();
             if (response.getStatus() != 201) {
                 String responseBody = response.getBody().toString();
-                throw new ServiceRegistryException(responseBody);
+                throw new ServiceRegistryException(String.format("route response: %s", responseBody));
             }
         } catch (Exception e) {
-            throw new ServiceRegistryException(e);
+            throw new ServiceRegistryException("Failed on adding new service", e);
         }
+        logger.info("Service '{}' plugins: {}", service.getName(), service.getPlugins());
         // TODO: add plugins
     }
 
@@ -125,7 +128,7 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
      */
     private void updateService(ServiceInfo service) {
         String name = service.getName();
-        String path = String.format("/service/%s", name);
+        String path = String.format("/services/%s", name);
         String url = getKongUrl(path);
         try {
             String body = getServiceBody(service);
@@ -133,24 +136,24 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
                     .header("Content-Type", "application/json").body(body).asJson();
             if (response.getStatus() != 200) {
                 String responseBody = response.getBody().toString();
-                throw new ServiceRegistryException(responseBody);
+                throw new ServiceRegistryException(String.format("service response: %s", responseBody));
             }
-            path = String.format("/service/%s/routes");
+            path = String.format("/services/%s/routes", name);
             url = getKongUrl(path);
             response = Unirest.get(url)
                     .header("Content-Type", "application/json").asJson();
-            JSONArray routeList = response.getBody().getArray();
+            JSONArray routeList = response.getBody().getObject().getJSONArray("data");
             body = getRouteBody(service);
             if (routeList.length() > 0) {
                 JSONObject routeBody = routeList.getJSONObject(0);
                 String id = routeBody.getString("id");
-                path = String.format("/service/%s/routes/%s", name, id);
+                path = String.format("/services/%s/routes/%s", name, id);
                 url = getKongUrl(path);
                 response = Unirest.patch(url)
                         .header("Content-Type", "application/json").body(body).asJson();
                 if (response.getStatus() != 200) {
                     String responseBody = response.getBody().toString();
-                    throw new ServiceRegistryException(responseBody);
+                    throw new ServiceRegistryException(String.format("route patch response: %s", responseBody));
                 }
             } else {
                 path = String.format("/service/%s/routes", name);
@@ -159,15 +162,14 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
                         .header("Content-Type", "application/json").body(body).asJson();
                 if (response.getStatus() != 201) {
                     String responseBody = response.getBody().toString();
-                    throw new ServiceRegistryException(responseBody);
+                    throw new ServiceRegistryException(String.format("route post response: %s", responseBody));
                 }
             }
         } catch (Exception e) {
-            throw new ServiceRegistryException(e);
+            throw new ServiceRegistryException("Failed on updating a service", e);
         }
-        for (ServicePlugin plugin : service.getPlugins()) {
-            // TODO: add/update/delete plugins
-        }
+        logger.info("Service '{}' plugins: {}", service.getName(), service.getPlugins());
+        // TODO: remove all plugins and the plugins as a new resources
     }
 
     private String getServiceBody(ServiceInfo service) throws ValidationException {
