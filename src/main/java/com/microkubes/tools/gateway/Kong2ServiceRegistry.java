@@ -156,7 +156,7 @@ public class Kong2ServiceRegistry implements ServiceRegistry {
                     throw new ServiceRegistryException(String.format("route patch response: %s", responseBody));
                 }
             } else {
-                path = String.format("/service/%s/routes", name);
+                path = String.format("/services/%s/routes", name);
                 url = getKongUrl(path);
                 response = Unirest.post(url)
                         .header("Content-Type", "application/json").body(body).asJson();
