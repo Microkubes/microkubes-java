@@ -78,6 +78,7 @@ com.microkubes.service.paths = /todo
 
 Configuration options:
 
+* `com.microkubes.gateway.adapter` the version of adapter used for API Gateway. Currently supported: kong-v0, kong-v2. Default: [kong-v0]
 * `com.microkubes.gateway.gateway-url` the URL of the admin port of Kong in the platform deployment. Usually set to `http://kong:8001`. 
 Note that this property triggers the auto-configuration process and must be present for the service to auto-register on the platform.
 * `com.microkubes.service.name` -  the name of the service
